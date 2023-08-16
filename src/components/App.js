@@ -85,7 +85,6 @@ const App = () => {
     { answer, questions, status, index, points, highscore, secondsRemaining },
     dispatch,
   ] = useReducer(reducer, initialState);
-  console.log(questions, "qustions");
   const numQuestions = questions.length;
   const maxPossiblePoints = questions.reduce(
     (prev, cur) => prev + cur.points,
