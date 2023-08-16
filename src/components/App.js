@@ -1,4 +1,6 @@
 import { useEffect, useReducer } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase/config";
 import Header from "./Header";
 import Main from "./Main";
 import Loader from "./Loader";
@@ -28,7 +30,7 @@ function reducer(state, action) {
     case "dataRecieved":
       return {
         ...state,
-        questions: action.payload,
+        questions: action.payload.Questions,
         status: "ready",
       };
     case "dataFailed":
@@ -84,15 +86,23 @@ const App = () => {
     dispatch,
   ] = useReducer(reducer, initialState);
   const numQuestions = questions.length;
-  const maxPossiblePoints = questions.reduce(
+  const maxPossiblePoints = [questions].reduce(
     (prev, cur) => prev + cur.points,
     0
   );
   useEffect(function () {
-    fetch("http://localhost:8000/questions")
-      .then((res) => res.json())
-      .then((data) => dispatch({ type: "dataRecieved", payload: data }))
-      .catch((err) => dispatch({ type: "dataFailed" }));
+    const fetchQuestions = async () => {
+      try {
+        const res = collection(db, "Questions");
+        const snapshot = await getDocs(res);
+        const data = snapshot.docs[0].data();
+        dispatch({ type: "dataRecieved", payload: data });
+      } catch (error) {
+        dispatch({ type: "dataFailed" });
+      }
+    };
+
+    fetchQuestions();
   }, []);
   return (
     <div className="app">
